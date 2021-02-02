@@ -14,6 +14,9 @@ def line(p1, p2, lr_canvas, ud_canvas, value):
     dir = math.atan2(dy, dx)
     dist = math.sqrt(math.pow(dx, 2) + math.pow(dy, 2))
 
+    if dist > 100:
+        return
+
     for i in range(int(dist)):
         px = x1 + dx * i / dist
         py = y1 + dy * i / dist
@@ -36,8 +39,8 @@ class Ant:
         self.py = py
         self.dir = random.uniform(0, 2*math.pi)
         self.dist = 5
-        self.scan_angle = math.pi/3
-        self.num_scans = 9
+        self.scan_angle = math.pi/4
+        self.num_scans = 5
 
     def scan(self, lr_canvas, ud_canvas):
         w, h = lr_canvas.shape
@@ -108,7 +111,7 @@ def main():
     w, h = lr_canvas.shape
 
     ants = []
-    for i in range(2000):
+    for i in range(3000):
         ants.append(Ant(random.randrange(0, w-1), random.randrange(0, h-1)))
 
     while True:
@@ -121,7 +124,17 @@ def main():
         lr_canvas = cv2.GaussianBlur(lr_canvas, (3, 3), .5)
         ud_canvas = cv2.GaussianBlur(ud_canvas, (3, 3), .5)
 
-        cv2.imshow("ant farm", np.abs(lr_canvas)+np.abs(ud_canvas))
+        hue = np.arctan2(lr_canvas, ud_canvas) * 255
+        saturation = np.zeros((500, 500))
+        saturation.fill(255)
+        value = np.sqrt(np.square(lr_canvas) + np.square(ud_canvas))
+        hsv_im = np.dstack((hue, saturation, value))
+        hsv_im = np.float32(hsv_im)
+
+        # cv2.imshow("ant farm", hsv_im)
+
+        bgr_im = cv2.cvtColor(hsv_im, cv2.COLOR_HSV2BGR)
+        cv2.imshow("ant farm", bgr_im)
         key = cv2.waitKey(1)
         if key == ord('q'):
             break
